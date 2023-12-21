@@ -1,0 +1,33 @@
+build:
+  # gpu: true
+
+  python_version: "3.11"
+
+  system_packages:
+    - ffmpeg
+    - git
+    - wget
+
+  python_packages:
+    - torch
+    - torchvision
+    - torchaudio
+    - torchsde
+    - einops
+    - transformers>=4.25.1
+    - safetensors>=0.3.0
+    - aiohttp
+    - accelerate
+    - pyyaml
+    - Pillow
+    - scipy
+    - tqdm
+    - psutil
+    - websocket-client==1.6.3
+
+  run:
+    - git clone https://github.com/comfyanonymous/ComfyUI /src/ComfyUI
+    - cd /src/ComfyUI/custom_nodes && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git
+    - wget -O /src/ComfyUI/models/checkpoints/sd_xl_turbo_2.0_fp16.safetensors https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true
+
+predict: "predict.py:Predictor"
