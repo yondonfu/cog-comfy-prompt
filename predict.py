@@ -75,9 +75,7 @@ class Predictor(BasePredictor):
                 if 'images' in node_output:
                     images_output = []
                     for image in node_output['images']:
-                        image_data = self.get_image(
-                            image['filename'], image['subfolder'], image['type'])
-                        images_output.append(image_data)
+                        images_output.append(image['filename'])
                 output_images[node_id] = images_output
 
         return output_images
@@ -91,11 +89,11 @@ class Predictor(BasePredictor):
         prompt_file: File = Input(
             description="File with ComfyUI API prompt in JSON format"),
     ) -> Path:
-        prompt = json.loads(prompt_file)
+        prompt = json.loads(prompt_file.read())
         img_output_path = self.get_prompt_output(
             prompt=prompt,
         )
-        return Path(img_output_path)
+        return img_output_path
 
     def get_prompt_output(self, prompt) -> Path:
         client_id = str(uuid.uuid4())
@@ -106,8 +104,5 @@ class Predictor(BasePredictor):
 
         for node_id in images:
             for image_data in images[node_id]:
-                from PIL import Image
-                import io
-                image = Image.open(io.BytesIO(image_data))
-                image.save("out-"+node_id+".png")
-                return Path("out-"+node_id+".png")
+                image_path = f"ComfyUI/output/{image_data}"
+                return Path(image_path)
