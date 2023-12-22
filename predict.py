@@ -8,6 +8,8 @@ import urllib
 import websocket
 from PIL import Image
 from urllib.error import URLError
+import os
+import shutil
 
 
 class Predictor(BasePredictor):
@@ -89,6 +91,11 @@ class Predictor(BasePredictor):
         prompt_file: File = Input(
             description="File with ComfyUI API prompt in JSON format"),
     ) -> Path:
+        output_dir = "ComfyUI/output"
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
+        os.makedirs(output_dir)
+
         prompt = json.loads(prompt_file.read())
         img_output_path = self.get_prompt_output(
             prompt=prompt,
