@@ -25,7 +25,7 @@ class Predictor(BasePredictor):
         print("Server is up and running!")
 
     def run_server(self):
-        command = "python ComfyUI/main.py"
+        command = "python ComfyUI/main.py --extra-model-paths-config extra_model_paths.yaml"
         server_process = subprocess.Popen(command, shell=True)
         server_process.wait()
 

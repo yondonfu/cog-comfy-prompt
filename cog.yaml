@@ -6,9 +6,10 @@ build:
   system_packages:
     - ffmpeg
     - git
-    - wget
 
   python_packages:
+    # ComfyUI
+    # https://github.com/comfyanonymous/ComfyUI/blob/master/requirements.txt
     - torch
     - torchvision
     - torchaudio
@@ -23,11 +24,15 @@ build:
     - scipy
     - tqdm
     - psutil
+    # ComfyUI-VideoHelperSuite
+    # https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite/blob/main/requirements.txt
+    - opencv-python
+    - imageio-ffmpeg
+    # Client
     - websocket-client==1.6.3
 
   run:
     - git clone https://github.com/comfyanonymous/ComfyUI /src/ComfyUI
     - cd /src/ComfyUI/custom_nodes && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git
-    - wget -O /src/ComfyUI/models/checkpoints/sd_xl_turbo_2.0_fp16.safetensors https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true
 
 predict: "predict.py:Predictor"

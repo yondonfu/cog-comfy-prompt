@@ -1,0 +1,3 @@
+comfyui:
+  base_path: ComfyUI
+  checkpoints: checkpoints
