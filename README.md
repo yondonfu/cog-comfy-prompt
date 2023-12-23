@@ -19,7 +19,7 @@ cog build --separate-weights -t cog-comfy-prompt
 ## Run
 
 ```
-docker run -p 5000:5000 --gpus all cog-comfy-prompt
+docker run --network="host" --gpus all cog-comfy-prompt
 ```
 
 ## Test
@@ -41,5 +41,11 @@ The test server receives GET requests for input files and PUT requests to upload
 Run the test script to generate an image using SDXL Turbo:
 
 ```
-python test.py
+python test.py -j text-to-image
+```
+
+Run the test script to generate a video using SVD:
+
+```
+python test.py -j image-to-video
 ```

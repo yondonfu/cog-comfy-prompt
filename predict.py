@@ -8,8 +8,11 @@ import urllib
 import websocket
 from PIL import Image
 from urllib.error import URLError
+from urllib.parse import urlparse
+import pathlib
 import os
 import shutil
+from typing import List
 
 
 class Predictor(BasePredictor):
@@ -46,17 +49,9 @@ class Predictor(BasePredictor):
             "http://{}/prompt".format(self.server_address), data=data)
         return json.loads(urllib.request.urlopen(req).read())
 
-    def get_image(self, filename, subfolder, folder_type):
-        data = {"filename": filename,
-                "subfolder": subfolder, "type": folder_type}
-        print(folder_type)
-        url_values = urllib.parse.urlencode(data)
-        with urllib.request.urlopen("http://{}/view?{}".format(self.server_address, url_values)) as response:
-            return response.read()
-
-    def get_images(self, ws, prompt, client_id):
+    def get_outputs(self, ws, prompt, client_id):
         prompt_id = self.queue_prompt(prompt, client_id)['prompt_id']
-        output_images = {}
+        outputs = {}
         while True:
             out = ws.recv()
             if isinstance(out, str):
@@ -78,9 +73,17 @@ class Predictor(BasePredictor):
                     images_output = []
                     for image in node_output['images']:
                         images_output.append(image['filename'])
-                output_images[node_id] = images_output
 
-        return output_images
+                    outputs[node_id] = images_output
+
+                if 'gifs' in node_output:
+                    gifs_output = []
+                    for gif in node_output['gifs']:
+                        gifs_output.append(gif['filename'])
+
+                    outputs[node_id] = gifs_output
+
+        return outputs
 
     def get_history(self, prompt_id):
         with urllib.request.urlopen("http://{}/history/{}".format(self.server_address, prompt_id)) as response:
@@ -90,11 +93,27 @@ class Predictor(BasePredictor):
         self,
         prompt_file: File = Input(
             description="File with ComfyUI API prompt in JSON format"),
+        input_files: List[File] = Input(
+            description="Input files for ComfyUI prompt",
+            default=[]
+        )
     ) -> Path:
+        input_dir = "ComfyUI/input"
         output_dir = "ComfyUI/output"
+
+        if os.path.exists(input_dir):
+            shutil.rmtree(input_dir)
+        os.makedirs(input_dir)
+
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
         os.makedirs(output_dir)
+
+        for file in input_files:
+            fname = Path(urlparse(file.url).path).name
+            input_path = f"{input_dir}/{fname}"
+            with open(input_path, "wb") as f:
+                f.write(file.read())
 
         prompt = json.loads(prompt_file.read())
         img_output_path = self.get_prompt_output(
@@ -107,9 +126,11 @@ class Predictor(BasePredictor):
         ws = websocket.WebSocket()
         ws.connect(
             "ws://{}/ws?clientId={}".format(self.server_address, client_id))
-        images = self.get_images(ws, prompt, client_id)
+        outputs = self.get_outputs(ws, prompt, client_id)
 
-        for node_id in images:
-            for image_data in images[node_id]:
-                image_path = f"ComfyUI/output/{image_data}"
-                return Path(image_path)
+        for node_id in outputs:
+            for output_data in outputs[node_id]:
+                output_path = f"ComfyUI/output/{output_data}"
+                # Return the first output found for now
+                # TODO: Support multiple outputs
+                return Path(output_path)
